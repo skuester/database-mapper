@@ -28,6 +28,7 @@
     "lodash": "^4.17.11"
   },
   "devDependencies": {
+    "graph-mapper": "^0.2.0",
     "mocha": "^6.1.4",
     "mysql2": "^1.6.5"
   }
