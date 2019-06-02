@@ -15,6 +15,10 @@
   "license": "ISC",
   "main": "index.js",
   "name": "database-mapper",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skuester/database-mapper.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
