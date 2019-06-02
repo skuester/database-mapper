@@ -1,0 +1,22 @@
+{
+  "author": {
+    "name": "Shane Kuester"
+  },
+  "description": "A declarative database query builder and mapper compatible with Knex.",
+  "keywords": [
+    "database",
+    "tables",
+    "sql",
+    "knex",
+    "query",
+    "builder",
+    "mapper"
+  ],
+  "license": "ISC",
+  "main": "index.js",
+  "name": "database-mapper",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "0.0.1"
+}
