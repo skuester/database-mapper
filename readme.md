@@ -21,6 +21,11 @@ Database Mapper does not attempt to become a model layer, or a wide ranging abst
 You can find the full documentation by reading through the spec: `lib/database-mapper.spec.js`
 
 
+## Test Setup
+
+Enter your database config in a `./knexfile.js` and run `npx knex migrate:latest`
+
+
 ## ISC License (ISC)
 Copyright 2019 Shane Kuester
 
