@@ -5,7 +5,8 @@ exports.up = function(knex, Promise) {
 			t.increments('id')
 			t.string('FirstName')
 			t.string('LastName')
-			t.string('AddressID')
+			t.integer('AddressID').index()
+			t.integer('MetaID').index()
 		})
 
 		.createTable('Address', t => {
@@ -14,10 +15,22 @@ exports.up = function(knex, Promise) {
 			t.string('City')
 			t.string('Country')
 		})
+
+		.createTable('Meta', t => {
+			t.increments('id')
+			t.integer('TenantID').index()
+		})
+
+		.createTable('Tenant', t => {
+			t.increments('id')
+			t.string('Name')
+		})
 };
 
 exports.down = function(knex, Promise) {
 	return knex.schema
 		.dropTable("Person")
 		.dropTable("Address")
+		.dropTable("Meta")
+		.dropTable("Tenant")
 };
