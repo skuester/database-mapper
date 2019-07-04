@@ -1,6 +1,6 @@
 const knex = require('knex')(require('../knexfile.js'))
 const DatabaseMapper = require('../index')
-const SeedDB = require("./seed-db")
+const SeedDB = require("../lib/seed-db")
 const assert = require('assert')
 
 
@@ -29,8 +29,7 @@ describe.only ("DatabaseMapper (single table)", function () {
 		})
 
 		beforeEach(function () {
-			DB.table('Post', {
-			})
+			DB.table('Post')
 		})
 
 		it ('selects an array', async function () {
