@@ -25,7 +25,7 @@
   "version": "0.0.1",
   "dependencies": {
     "knex": "^0.17.2",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
     "graph-mapper": "^1.0.0",
