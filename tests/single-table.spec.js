@@ -87,8 +87,7 @@ describe.only ("DatabaseMapper (single table)", function () {
 
 
 	describe ('joins and name conflicts', function () {
-
-		it.skip ('can select a self-join without fear of table name conflict', async function () {
+		beforeEach(function () {
 			DB.table('Author', {
 				relations: {
 					friend: {
@@ -97,6 +96,9 @@ describe.only ("DatabaseMapper (single table)", function () {
 					}
 				}
 			})
+		})
+
+		it.skip ('can select a self-join without fear of table name conflict', async function () {
 
 			let results = await DB('Author')
 				.first()
@@ -113,6 +115,27 @@ describe.only ("DatabaseMapper (single table)", function () {
 						id: 2,
 						Name: 'Author B',
 						friend_id: 1
+					}
+				}
+			})
+		})
+
+
+		it.skip ('handles #select() inside a scope, just the same as if it were on the top level', async function () {
+
+			let results = await DB('Author')
+				.first()
+				.join('friend', Friend => {
+					Friend.select('Name as friend_name')
+				})
+
+			assert.deepEqual(results, {
+				Author: {
+					id: 1,
+					Name: 'Author A',
+					friend_id: 2,
+					friend: {
+						friend_name: 'Author B',
 					}
 				}
 			})
