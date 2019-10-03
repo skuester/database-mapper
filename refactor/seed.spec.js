@@ -1,5 +1,5 @@
 let knex = require('knex')(require('../knexfile.js'))
-const SeedDB = require("./seed-db")
+const SeedDB = require("./seed")
 const assert = require('assert')
 
 

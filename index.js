@@ -1,1 +1,1 @@
-// Coming Soon
+module.exports = require('./refactor/database-mapper')

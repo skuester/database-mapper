@@ -1,7 +1,7 @@
 const _ = require("lodash")
 
 
-module.exports = function SeedDB(client, ...seeds) {
+module.exports = function Seed(client, ...seeds) {
 
 	var tables = concat_seeds(seeds)
 
@@ -62,4 +62,3 @@ module.exports = function SeedDB(client, ...seeds) {
 		}
 	}
 }
-
