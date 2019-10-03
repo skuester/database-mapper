@@ -4,6 +4,7 @@ exports.up = function(knex, Promise) {
 		.createTable('Author', t => {
 			t.increments('id')
 			t.string('Name')
+			t.integer('friend_id')
 		})
 
 		.createTable('post', t => {

@@ -13,37 +13,112 @@ describe.only ("DatabaseMapper (single table)", function () {
 	})
 
 
-	describe ('SELECT queries', function () {
+	before(async function () {
+		DB = DatabaseMapper(knex)
 
-		before(async function () {
-			DB = DatabaseMapper(knex)
-
-			let seed = Seed(knex, {
-				Author: [
-					{ id: 1, Name: 'Author A' },
-					{ id: 2, Name: 'Author B' },
-				]
-			})
-
-			await seed.insert()
+		let seed = Seed(knex, {
+			Author: [
+				{ id: 1, Name: 'Author A', friend_id: 2 },
+				{ id: 2, Name: 'Author B', friend_id: 1 },
+			]
 		})
 
-		beforeEach(function () {
-			DB.table('Author')
-		})
-
-		it ('selects an array', async function () {
-			let results = await DB('Author').select()
-
-			assert.deepEqual(results, [
-				{ id: 1, Name: 'Author A' },
-				{ id: 2, Name: 'Author B' },
-			])
-		})
-
+		await seed.insert()
 	})
 
 
+
+
+
+	beforeEach(function () {
+		DB.table('Author')
+	})
+
+	describe ('#select()', function () {
+
+		it ('returns an array, with values nested under the table', async function () {
+			let results = await DB('Author').select()
+
+			assert.deepEqual(results, [
+				{ Author: { id: 1, Name: 'Author A', friend_id: 2 } },
+				{ Author: { id: 2, Name: 'Author B', friend_id: 1 } },
+			])
+		})
+
+		it ('accepts the same arguments as knex#select()', async function () {
+			let results = await DB('Author').select('Name')
+
+			assert.deepEqual(results, [
+				{ Author: { Name: 'Author A' } },
+				{ Author: { Name: 'Author B' } },
+			])
+		})
+	})
+
+
+
+	describe ('#first()', function () {
+
+		it ('can use first()', async function () {
+			let results = await DB('Author').first()
+
+			assert.deepEqual(results,
+				{ Author: { id: 1, Name: 'Author A', friend_id: 2 } }
+			)
+		})
+
+		it ('accepts the same arguments as knex#first()', async function () {
+			let results = await DB('Author').first('Name')
+
+			assert.deepEqual(results,
+				{ Author: { Name: 'Author A' } },
+			)
+		})
+
+		it ('works with aliases', async function () {
+			let results = await DB('Author').first('Name as the_name')
+
+			assert.deepEqual(results,
+				{ Author: { the_name: 'Author A' } },
+			)
+		})
+	})
+
+
+
+	describe ('joins and name conflicts', function () {
+
+		it.skip ('can select a self-join without fear of table name conflict', async function () {
+			DB.table('Author', {
+				relations: {
+					friend: {
+						table: 'Author',
+						on: (Author, Other) => [Author('friend_id'), Other('id')]
+					}
+				}
+			})
+
+			let results = await DB('Author')
+				.first()
+				.join('friend', Friend => {
+					Friend.select()
+				})
+
+			assert.deepEqual(results, {
+				Author: {
+					id: 1,
+					Name: 'Author A',
+					friend_id: 2,
+					friend: {
+						id: 2,
+						Name: 'Author B',
+						friend_id: 1
+					}
+				}
+			})
+		})
+
+	})
 
 
 })
