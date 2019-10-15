@@ -98,7 +98,7 @@ describe.only ("DatabaseMapper (single table)", function () {
 			})
 		})
 
-		it.skip ('can select a self-join without fear of table name conflict', async function () {
+		it ('can select a self-join without fear of table name conflict', async function () {
 
 			let results = await DB('Author')
 				.first()
