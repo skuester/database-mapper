@@ -28,6 +28,11 @@ class BuilderScope {
 		return this
 	}
 
+	modify(block_fn) {
+		block_fn(this.q, this.prefixer)
+		return this
+	}
+
 	join(relation_name, block_fn) {
 		let rel = this.table.relations[relation_name]
 

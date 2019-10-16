@@ -85,6 +85,21 @@ describe.only ("DatabaseMapper (single table)", function () {
 	})
 
 
+	describe ('#modify()', function () {
+		it ('is an escape hatch to manually use the knex query directly', async function () {
+			let results = await DB('Author').modify((knex, Author) => {
+				knex
+					.first(`${Author('Name')} as custom_name`)
+					.where(Author('id'), 1)
+			})
+
+			assert.deepEqual(results,
+				{ Author: { custom_name: 'Author A' }}
+			)
+		})
+	})
+
+
 
 	describe ('joins and name conflicts', function () {
 		beforeEach(function () {
