@@ -1,4 +1,8 @@
+const _ = require('lodash')
 const { TableEnum, prefixer } = require('./utils')
+
+
+
 
 class BuilderScope {
 
@@ -7,7 +11,7 @@ class BuilderScope {
 		this.table = table
 		this.result_path = result_path
 		this.runner = runner
-		this.prefixer = prefixer(this.alias)
+		this.prefixer = prefixer(`${this.alias}.`)
 	}
 
 	get q() {
@@ -15,21 +19,21 @@ class BuilderScope {
 	}
 
 	select(...args) {
-		this.q.select(...args)
+		this.q.select(...prefix_select_args(this.prefixer, args))
 		return this
 	}
 
 	first(...args) {
-		this.q.first(...args)
+		this.q.first(...prefix_select_args(this.prefixer, args))
 		return this
 	}
 
 	join(relation_name, block_fn) {
-		let rel = this.meta.relations[relation_name]
+		let rel = this.table.relations[relation_name]
 
 		let scope = this.runner.create_scope({
-			table: rel.table,
-			result_path: this.result_path.concat(rel.name)
+			table_name: rel.table,
+			result_path: this.result_path.concat(relation_name)
 		})
 
 		this.q.join(`${rel.table} as ${scope.alias}`, ...rel.on(this.prefixer, scope.prefixer))
@@ -40,9 +44,52 @@ class BuilderScope {
 	}
 
 	then(block_fn) {
-		return this.q.then(block_fn)
+		return this.runner.then(block_fn)
 	}
 }
+
+define_where_method(BuilderScope.prototype, 'where')
+
+
+function define_where_method(proto, where_method_name) {
+	proto[where_method_name] = function (...args) {
+		this.q[where_method_name](...prefix_where_args(this.prefixer, args))
+		return this
+	}
+}
+
+
+function prefix_where_args(prefixer, args) {
+	if (_.isString(args[0])) {
+		args[0] = prefixer(args[0])
+	}
+	else if (_.isObject(args[0])) {
+		let where_obj = {}
+		for (let key in args[0]) {
+			where_obj[prefixer(key)] = args[0][key]
+		}
+		args[0] = where_obj
+	}
+	return args
+}
+
+
+function prefix_select_args(prefixer, args) {
+	if (!args.length) return [prefixer('*')]
+	return args.map(prefixer)
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -55,19 +102,19 @@ class QueryRunner {
 	}
 
 
-	create_root_scope(table) {
-		let scope = this.create_scope({ table, result_path: table })
-		this.query = this.DB.knex(`${table} as ${scope.alias}`).config({ nestTables: true })
+	create_root_scope(table_name) {
+		let scope = this.create_scope({ table_name: table_name, result_path: [ table_name ] })
+		this.query = this.DB.knex(`${table_name} as ${scope.alias}`).options({ nestTables: true })
 		return scope
 	}
 
 
-	create_scope({ table, result_path }) {
+	create_scope({ table_name, result_path }) {
 		let alias = this.enum()
 
 		let scope = new BuilderScope({
 			alias,
-			table: this.DB.meta(table),
+			table: this.DB.meta(table_name),
 			result_path,
 			runner: this,
 		})
@@ -78,42 +125,59 @@ class QueryRunner {
 	}
 
 
-	// exec() {
-	// 	let root_result = await this.knex('person').where('something')
-	// 	let second_result = await child.exec(root_result.Person.ID)
-	// 	_.set(root_result, 'Person.Relationship', second_result)
+	then(block_fn) {
+		return this.query.then(results => {
+			if (_.isArray(results)) {
+				return block_fn(results.map(row => this.map_result_row(row)))
+			}
+			else {
+				return block_fn(this.map_result_row(results))
+			}
+		})
+	}
 
-	// 	return root_result
-	// }
-
-	// map_result_row(row) {
-	// 	this.scopes.reduce((result, scope) => {
-	// 		_.set(result, scope.result_path, row[scope.alias])
-	// 		return result
-	// 	}, {})
-	// }
+	map_result_row(row) {
+		return this.scopes.reduce((result, scope) => {
+			_.set(result, scope.result_path, row[scope.alias])
+			return result
+		}, {})
+	}
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
 function TableMeta(name, meta) {
 	meta.name = name
-
-	for (let rel_name in meta.relations) {
-		let rel = meta.relations[rel_name]
-
-		meta.relations[rel_name].exec = function (runner, result_path, join_method = 'join') {
-			runner.query[join_method]()
-
-			let scope = runner.create_scope({
-				table: rel.table,
-				result_path: result_path.concat(rel_name)
-			})
-
-			this.q.join(`${rel.table} as ${scope.alias}`, ...rel.on(this.prefixer, scope.prefixer))
-		}
-	}
+	return meta
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

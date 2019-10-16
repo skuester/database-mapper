@@ -101,6 +101,7 @@ describe.only ("DatabaseMapper (single table)", function () {
 		it ('can select a self-join without fear of table name conflict', async function () {
 
 			let results = await DB('Author')
+				.where('id', 1)
 				.first()
 				.join('friend', Friend => {
 					Friend.select()
@@ -121,12 +122,13 @@ describe.only ("DatabaseMapper (single table)", function () {
 		})
 
 
-		it.skip ('handles #select() inside a scope, just the same as if it were on the top level', async function () {
+		it ('handles #select() inside a scope, just the same as if it were on the top level', async function () {
 
 			let results = await DB('Author')
+				.where('id', 1)
 				.first()
 				.join('friend', Friend => {
-					Friend.select('Name as friend_name')
+					Friend.select('Name')
 				})
 
 			assert.deepEqual(results, {
@@ -135,7 +137,7 @@ describe.only ("DatabaseMapper (single table)", function () {
 					Name: 'Author A',
 					friend_id: 2,
 					friend: {
-						friend_name: 'Author B',
+						Name: 'Author B',
 					}
 				}
 			})
