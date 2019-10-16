@@ -34,7 +34,7 @@ class BuilderScope {
 	}
 
 	join(relation_name, block_fn) {
-		let rel = this.table.relations[relation_name]
+		let rel = this.table.get_relation(relation_name)
 
 		let scope = this.runner.create_scope({
 			table_name: rel.table,
@@ -42,6 +42,16 @@ class BuilderScope {
 		})
 
 		this.q.join(`${rel.table} as ${scope.alias}`, ...rel.on(this.prefixer, scope.prefixer))
+
+		block_fn(scope)
+
+		return this
+	}
+
+	include(relation_name, block_fn) {
+		let rel = this.table.get_relation(relation_name)
+
+		let scope = this.runner.add_child_query(rel.has_many)
 
 		block_fn(scope)
 
@@ -107,8 +117,8 @@ class QueryRunner {
 	}
 
 
-	create_root_scope(table_name) {
-		let scope = this.create_scope({ table_name: table_name, result_path: [ table_name ] })
+	create_root_scope(table_name, opts = {}) {
+		let scope = this.create_scope({ table_name: table_name, result_path: opts.result_path || [ table_name ] })
 		this.query = this.DB.knex(`${table_name} as ${scope.alias}`).options({ nestTables: true })
 		return scope
 	}
@@ -127,6 +137,20 @@ class QueryRunner {
 		this.scopes.push(scope)
 
 		return scope
+	}
+
+
+	add_child_query(table_name, result_path, key_path, foreign_key) {
+		let query = this.DB(table_name)
+
+		this.child_queries.push({
+			query,
+			result_path,
+			join(parent_results) {
+				let ids = parent_results.map(r => _.get(r, key_path))
+				query.whereIn(foreign_key, ids)
+			}
+		})
 	}
 
 
@@ -161,9 +185,15 @@ class QueryRunner {
 
 
 
-function TableMeta(name, meta) {
-	meta.name = name
-	return meta
+class TableMeta {
+	constructor(name, meta) {
+		this.name = name
+		Object.assign(this, meta)
+	}
+
+	get_relation(name) {
+		return this.relations[name]
+	}
 }
 
 
@@ -190,17 +220,17 @@ module.exports = function DatabaseMapper(knex) {
 	const TABLE_CLASSES = {}
 	const TABLE_META = {}
 
-	function DB(name) {
-		return new TABLE_CLASSES[name]()
+	function DB(name, opts) {
+		return new TABLE_CLASSES[name](opts)
 	}
 
 	DB.knex = knex
 
 	DB.table = function (name, config = {}) {
-		TABLE_META[name] = TableMeta(name, config)
+		TABLE_META[name] = new TableMeta(name, config)
 
-		TABLE_CLASSES[name] = function() {
-			return new QueryRunner(DB).create_root_scope(name)
+		TABLE_CLASSES[name] = function(opts) {
+			return new QueryRunner(DB).create_root_scope(name, opts)
 		}
 	}
 

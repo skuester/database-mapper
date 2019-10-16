@@ -3,14 +3,15 @@ const DatabaseMapper = require('../index')
 const Seed = require("../seed")
 const assert = require('assert')
 
+after(async function () {
+	await knex.destroy()
+})
 
-describe.only ("DatabaseMapper (single table)", function () {
+
+describe ("DatabaseMapper (single table)", function () {
 	let DB
 
 
-	after(async function () {
-		await knex.destroy()
-	})
 
 
 	before(async function () {
