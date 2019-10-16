@@ -20,7 +20,8 @@
     "url": "https://github.com/skuester/database-mapper.git"
   },
   "scripts": {
-    "test": "mocha tests/*.spec.js"
+    "test": "mocha tests/*.spec.js",
+    "test:w": "mocha --watch tests/*.spec.js"
   },
   "version": "0.0.1",
   "dependencies": {
