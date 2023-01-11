@@ -24,7 +24,7 @@
   },
   "version": "0.0.2",
   "dependencies": {
-    "knex": "^0.19.5",
+    "knex": "^2.4.0",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
